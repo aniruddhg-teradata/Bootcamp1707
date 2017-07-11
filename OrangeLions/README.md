@@ -1,7 +1,8 @@
 # Bootcamp1707
 July 2017 Bootcamp - London
 
-This is the folder for team <Orange Lions>
+This is the folder for team **Orange Lions**.
+
 Our team members are (from left to right once our photo gets uploaded)
 
 [](photoname.jpg)
