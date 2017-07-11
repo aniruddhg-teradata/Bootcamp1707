@@ -9,7 +9,7 @@ Our team members are (from left to right once our photo gets uploaded)
 * Andrew Wu
 * Blanca Lanaspa
 * Cynthia Li
-* Member4
+* Danko Nikolic
 * Zhongyuan Li
 
 # Instructor
