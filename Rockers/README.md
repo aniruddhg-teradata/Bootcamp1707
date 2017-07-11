@@ -1,16 +1,16 @@
 # Bootcamp1707
 July 2017 Bootcamp - London
 
-This is the folder for team <<put team name here>>
+This is the folder for team Rockers
 Our team members are (from left to right once our photo gets uploaded)
 
 [](photoname.jpg)
 
-* Member1
-* Member2
-* Member3
-* Member4
-* Member5
+* Richard Seery
+* Aniruddh Gandhi
+* Fabian Necci
+* Jianguang Li
+* Eric Greene
 
 # Instructor
 * Carl Howe
