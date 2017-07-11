@@ -6,7 +6,7 @@ Our team members are (from left to right once our photo gets uploaded)
 
 [](photoname.jpg)
 
-* Member1
+* Andrew Wu
 * Member2
 * Member3
 * Member4
