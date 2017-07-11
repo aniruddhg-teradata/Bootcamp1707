@@ -9,7 +9,7 @@ Our team members are (from left to right once our photo gets uploaded)
 - Martin Kaufmann
 - Go Kojima
 - Nicollo Becchi
-- Picnic
+- Wipada Chanthaweethip (Picnic)
 - Kota Mori
 - David van Daalen
 
