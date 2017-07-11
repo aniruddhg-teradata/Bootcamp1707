@@ -11,6 +11,7 @@ Our team members are (from left to right once our photo gets uploaded)
 * Fabian Necci
 * Jianguang Li
 * Eric Greene
+* Alexander Kassing
 
 # Instructor
 * Carl Howe
