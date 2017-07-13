@@ -4,7 +4,7 @@ July 2017 Bootcamp - London
 This is the folder for team <Orange Lions>
 Our team members are (from left to right once our photo gets uploaded)
 
-![alt](../img/IMG9194.jpg)
+![alt](../img/IMG_9194.jpg)
 
 - Wipada Chanthaweethip (Picnic)
 - Martin Kaufmann
