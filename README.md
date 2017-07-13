@@ -14,7 +14,7 @@ Eventually, Carl will upload photos of all the team members to your team folders
 
 Just as a reminder, this project is in support of Cadmus Labs, Dr. Dabney Donovan, CEO.
 
-![](img/Dr.Donovan.jpg)
+![Dr. Donovan](img/Dr.Donovan.jpg)
 
 
 
