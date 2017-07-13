@@ -14,7 +14,7 @@ Eventually, Carl will upload photos of all the team members to your team folders
 
 Just as a reminder, this project is in support of Cadmus Labs, Dr. Dabney Donovan, CEO.
 
-![Dr. Donovan](img/Dr.Donovan.jpg)
+![Dr. Donovan](https://github.com/ThinkBigAnalytics/Bootcamp1707/img/Dr.Donovan.jpg)
 
 
 
