@@ -155,7 +155,7 @@ pov2007 <- pov2007[-1,]
 
 pov2006 <- fromJSON('http://api.census.gov/data/timeseries/poverty/saipe/schdist?get=SD_NAME,SAEPOVRAT5_17RV_PT&for=school+district+(unified):*&in=state:*&time=2006&key=90b5a6faf3e3aa4d50571d9a6447eb00ab47237c')
 colnames(pov2006) <- pov2006[1,]
-pov2006 <- pov2006[-1,]
+  pov2006 <- pov2006[-1,]
 
 pov2005 <- fromJSON('http://api.census.gov/data/timeseries/poverty/saipe/schdist?get=SD_NAME,SAEPOVRAT5_17RV_PT&for=school+district+(unified):*&in=state:*&time=2005&key=90b5a6faf3e3aa4d50571d9a6447eb00ab47237c')
 colnames(pov2005) <- pov2005[1,]
@@ -241,6 +241,14 @@ years <- c(2004,2005,2006,2007,2008,2009,2010,2011)
 drugsNORM <- rbind(drugs2004_c[,c(6)],drugs2005_c[,c(6)],drugs2006_c[,c(6)],drugs2007_c[,c(6)],drugs2008_c[,c(6)],drugs2009_c[,c(6)],
                  drugs2010_c[,c(6)],drugs2011_c[,c(6)])
 drugsNORM <- cbind(years,drugsNORM) %>% as.data.frame
+colnames(drugsNORM) <- gsub("OTHER","OTHERS",colnames(drugsNORM))
+colnames(drugsNORM) <- gsub("PHOENIX","PHOENI",colnames(drugsNORM))
+drugsSORT <- NULL
+drugsSORT$Year <- drugsNORM$YEAR
+for(i in 1:length(names(regions))){
+  drugsSORT[[paste0(names(regions)[i])]] <- drugsNORM[[paste0(names(regions)[i])]]
+}
+drugsSORT <- as.data.frame(drugsSORT)
 colnames(drugsNORM) <- c("YEAR",longlat$AREA)
 
 drugsNORM_TOT <- NULL
@@ -249,13 +257,9 @@ drugsNORM_TOT  <- as.data.frame(drugsNORM_TOT)
 drugsNORM_TOT$AREA <- "X"
 for(j in 2:dim(drugsNORM)[2]) {for(i in 1:length(years)) drugsNORM_TOT$AREA[(j-2)*length(years)+i] <- colnames(drugsNORM)[j] }
 
-ggplot(data = drugsNORM_TOT) + geom_line(aes(x=years,y=V2,group = AREA,color = AREA)) 
-
 save(drugs_times,file = "~/Documents/Bootcamp/data/drugs2011.RData")
 
-ggplot(data = murder) + geom_line(aes(x=Year,y=Massachusetts))
 
-ggplot(data = murder) + geom_line(aes(x=Year,y=Illinois))
 
 murder_TOT <- NULL
 years <- murder$Year
@@ -316,7 +320,7 @@ c("Arizona", "New.Mexico"),
 c("California"),
 c("Washington", "Oregon", "Idaho"),
 c("Nevada", "Wyoming", "Montana", "Oklahoma", "Arkansas", "Mississippi", "Alabama", "Missouri", "West.Virginia", "Kentucky", "North.Carolina", "South.Carolina", "Alaska")))
-names(regions) <- c("BOSTON","NEWYORK","CHICAGO","DETROIT","MINNEAPOLIS","DADECOUNTY","HOUSTON","DENVER","PHOENIX","SANFRANCISCO","SEATTLE","OTHERS")
+names(regions) <- c("BOSTON","NEWYORK","CHICAGO","DETROIT","MINNEAPOLIS","DADECOUNTY","HOUSTON","DENVER","PHOENI","SANFRANCISCO","SEATTLE","OTHERS")
 
 
 names(regions)[grep("Montana",regions )]
@@ -330,7 +334,7 @@ for(i in 1:length(names(regions))){
     for(k in 1:length(regions[i][[1]])){
       zw <- zw + murder[[paste0(regions[i][[1]][k] )]][j] 
       murder_regions[[paste0(names(regions)[i])]][j] <- zw/length(regions[i][[1]])
-      }   
+    }   
   }
 }
 
@@ -354,7 +358,7 @@ pov2015State <- ddply(pov2015,.(State),summarize,mean = mean(as.numeric(paste(SA
 #murder <- murder[,-c(1,53)]
 
 pov_states <- NULL
-pov_states$Year <- c(1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015)
+pov_states$Year <- c(seq(from = 1999, to = 2015))
 
 for(i in 1:length(names(murder))){
   pov_states[[names(murder)[i]]] <- c(pov1999State$mean[pov1999State$State == names(murder)[i]],
@@ -384,7 +388,7 @@ for(i in 1:length(names(regions))){
     zw <- 0
     for(k in 1:length(regions[i][[1]])){
       zw <- zw + pov_states[[paste0(regions[i][[1]][k] )]][j] 
-      pov_regions[[paste0("'",names(regions)[i],"'")]][j] <- zw
+      pov_regions[[paste0(names(regions)[i])]][j] <- zw/length(regions[i][[1]])
     }   
   }
 }
@@ -399,8 +403,6 @@ for(i in 2:dim(murder_regions)[2]) murderReg_TOT <- rbind(murderReg_TOT,cbind(ye
 murderReg_TOT  <- as.data.frame(murderReg_TOT)
 murderReg_TOT$Region <- "X"
 for(j in 2:dim(murder_regions)[2]) {for(i in 1:length(years)) murderReg_TOT$Region[(j-2)*length(years)+i] <- colnames(murder_regions)[j] }
-murderReg_TOT$Region <- gsub('X.','',murderReg_TOT$Region)
-murderReg_TOT$Region <- gsub('\\.','',murderReg_TOT$Region)
 murderReg_TOT
 
 povReg_TOT <- NULL
@@ -421,7 +423,9 @@ drugsNORM_TOT$TYPE <- "DRUGS"
 
 alltog <- rbind(povReg_TOT,murderReg_TOT,drugsNORM_TOT)
 
-ggplot() +  geom_line(aes(x= povReg_TOT$YEAR,y=povReg_TOT$RATE,group = povReg_TOT$REGION,color = povReg_TOT$REGION))   
+ggplot() +  geom_line(aes(x= povReg_TOT$REGION,y=povReg_TOT$RATE,group = povReg_TOT$YEAR,color = povReg_TOT$YEAR))   
+ggplot() +  geom_line(aes(x= murderReg_TOT$REGION,y=murderReg_TOT$RATE,group = murderReg_TOT$YEAR,color = murderReg_TOT$YEAR))  + geom_line(aes(x= povReg_TOT$REGION,y=povReg_TOT$RATE,group = povReg_TOT$YEAR,color = povReg_TOT$YEAR))    
+ggplot() +  geom_line(aes(x= drugsNORM_TOT$REGION,y=drugsNORM_TOT$RATE,group = drugsNORM_TOT$YEAR,color = drugsNORM_TOT$YEAR))     + geom_line(aes(x= povReg_TOT$REGION,y=povReg_TOT$RATE,group = povReg_TOT$YEAR,color = povReg_TOT$YEAR))    
 #+  geom_line(aes(x= murderReg_TOT$YEAR,y=murderReg_TOT$RATE,group = murderReg_TOT$REGION,color = murderReg_TOT$REGION)) 
 ggplot(data = drugsNORM_TOT) + geom_line(aes(x= YEAR, y=RATE, group = REGION, color = REGION)) 
 
@@ -430,7 +434,8 @@ save(murderReg_TOT, file = "~/Documents/Bootcamp/data/murder.RData")
 save(drugsNORM_TOT, file = "~/Documents/Bootcamp/data/drugs.RData")
 
 
-  ggplot() +  geom_line(aes(x= pov_regions$YEAR, y=pov_regions$BOSTON)) 
+
+ggplot() +  geom_line(aes(x= pov_regions$YEAR, y=pov_regions$BOSTON)) +  geom_line(aes(x= murder_regions$Year, y=murder_regions$BOSTON))
 
 
 colnames(pov_regions) <- gsub('X.','',colnames(pov_regions))
@@ -441,8 +446,37 @@ colnames(murder_regions) <- gsub('\\.','',colnames(murder_regions))
 
 cors <- NULL
 year <- c(seq(from = 1999, to = 2014, by = 1))
-for(i in 1:length(names(regions))){
+
+for(i in 2:length(names(regions))){
   cutm <- NULL
-  cutm <- rbind(murder_regions[[colnames(pov_regions)[i]]][murder_regions$Year %in% year ],pov_regions[[colnames(pov_regions)[i]]][pov_regions$Year %in% year]) %>% as.matrix
-  cors <- c(cors,cor(cutm)[2,1])
+  print(colnames(pov_regions)[i])
+  cutm <- rbind(murder_regions[[colnames(pov_regions)[i+1]]][murder_regions$Year %in% year ],pov_regions[[colnames(pov_regions)[i+1]]][pov_regions$Year %in% year ]) %>% as.matrix
+  cors <- c(cors,cor(x= murder_regions[[colnames(pov_regions)[i+1]]][murder_regions$Year %in% year ],y =pov_regions[[colnames(pov_regions)[i+1]]][pov_regions$Year %in% year ]))
 }
+cors_murder <- cors 
+
+
+cors <- NULL
+year <- c(seq(from = 2004, to = 2011, by = 1))
+
+for(i in 2:length(names(regions))){
+  cutm <- NULL
+  print(colnames(pov_regions)[i])
+  cutm <- rbind(drugsNORM[[colnames(pov_regions)[i+1]]][drugsNORM$YEAR %in% year ],pov_regions[[colnames(pov_regions)[i+1]]][pov_regions$Year %in% year ]) %>% as.matrix
+  cors <- c(cors,cor(x= drugsNORM[[colnames(pov_regions)[i+1]]][drugsNORM$YEAR %in% year ],y =pov_regions[[colnames(pov_regions)[i+1]]][pov_regions$Year %in% year ]))
+}
+cors_drugs <- cors
+
+
+loc <- NULL
+loc$region <- names(regions)
+loc$lat <- unlist(lapply(seq(1:length(loc$region)[1]),function(x) drugs_times$LAT[drugs_times$LOCATION ==loc$region[x]]))
+loc$long <- unlist(lapply(seq(1:length(loc$region)[1]),function(x) drugs_times$LONG[drugs_times$LOCATION ==loc$region[x]]))
+loc$population <- unlist(lapply(seq(1:length(loc$region)[1]),function(x) drugs_times$POPULATION[drugs_times$LOCATION ==loc$region[x]]))
+
+loc$drugs <- unlist(lapply(seq(from = 2,to=dim(drugsSORT)[2]),function(x) mean(drugsSORT[[x]])))
+loc$murder <- unlist(lapply(seq(from = 2, to = dim(murder_regions)[2]),function(x) mean(murder_regions[[x]],na.rm = T)))
+loc$poverty <- unlist(lapply(seq(from = 2, to = dim(pov_regions)[2]),function(x) mean(pov_regions[[x]],na.rm = T)))
+save(loc,file = "~/Documents/Bootcamp/data/locations.RData")
+
+
