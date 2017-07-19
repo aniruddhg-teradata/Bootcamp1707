@@ -1,0 +1,22 @@
+---
+# This role downloads the raw data to the edge nodes and uploads it to HDFS
+
+- name: Ensure download directory exists
+  file:
+    path: /mnt1/raw_data
+    state: directory
+
+- name: Poverty data - download locally
+  uri: 
+    url: http://api.census.gov/data/timeseries/poverty/saipe/schdist?get=SD_NAME,SAEPOVRAT5_17RV_PT&for=school+district+(unified):*&in=state:*&time={{ item }}&key=90b5a6faf3e3aa4d50571d9a6447eb00ab47237c
+    method: GET
+    dest: /mnt1/raw_data/poverty_{{ item }}.json
+    creates: /mnt1/raw_data/poverty_{{ item }}.json
+  with_sequence: start=1999 end=2015
+
+- name: Poverty data - ensure HDFS folder exists
+  shell: hdfs dfs -mkdir /landingzone-ansible
+  
+- name: Poverty data - upload to HDFS
+  shell: hdfs dfs -put -f /mnt1/raw_data/poverty_{{ item }}.json /landingzone-ansible/poverty_{{ item }}.json
+  with_sequence: start=1999 end=2015

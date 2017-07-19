@@ -1,0 +1,7 @@
+---
+# This playbook provisions the data for the analysis
+
+- hosts: edge_nodes
+  roles:
+  - edge_node
+  
