@@ -9,6 +9,7 @@ library(graphics)
 library(scales)
 library(RColorBrewer)
 library (DT)
+library(plotly)
 #library(RQuantLib)
 #library(rPython)
 library("colorspace")
@@ -16,7 +17,8 @@ library("colorspace")
 
 load("./drugs.RData")
 load("./locations.RData")
-
+load("./pred_drug.RData")
+load("./pred_murder.RData")
 
 plot_map <- function(category){
   colors <- brewer.pal(n=11,name="RdYlGn")
@@ -48,17 +50,24 @@ server <- function(input, output,session) {
     plot_map(loc$drugs)
   })
   
-  output$plotdrugs <- renderPlot({
-    p<- ggplot() +  geom_line(aes(x= drugsNORM_TOT$YEAR,y=drugsNORM_TOT$RATE,group = drugsNORM_TOT$REGION,color = drugsNORM_TOT$REGION,size=2)) + 
-      xlab("Year") + ylab("Drug abuse")
+  
+  observeEvent(input$give_murder,{
+  output$plotmurder <- renderPlot({
+    print(input$murderregion)
+    p<- ggplot() +  geom_line(aes(x= murder_regions$Year,y=murder_regions[[paste(input$murderregion)]]),size=1.2,color = "black") + xlab("Year") + ylab("Murder rate")   +  geom_line(aes(x= pred_murder$year,y=pred_murder[[paste(input$murderregion)]],size=2),color = "orange") 
     p
+  })
   })
   
-  output$plotmurder <- renderPlot({
-    p<- ggplot() +  geom_line(aes(x= murderReg_TOT$YEAR,y=murderReg_TOT$RATE,group = murderReg_TOT$REGION,color = murderReg_TOT$REGION,size=2)) + 
-      xlab("Year") + ylab("Murder rate")
-    p
+  observeEvent(input$give_drugs,{
+    output$plotdrugs <- renderPlot({
+      print(input$drugregion)
+      p1<- ggplot() +  geom_line(aes(x= drugsNORM$YEAR,y=drugsNORM[[paste(input$drugregion)]]),size=1.2,color = "black") + xlab("Year") + ylab("Drug Abuse")   +  geom_line(aes(x= pred_drug$year,y=pred_drug[[paste(input$drugregion)]],size=2),color = "orange") 
+      p1
+    })
   })
+  
+  
   
   output$choseregionDrugs <- renderUI({
     choseregionDrugs <- selectizeInput('drugregion',"Select a region... ",choices  = c("...",loc$region))
@@ -94,10 +103,10 @@ body <- dashboardBody(
                 leafletOutput('plot_map_murder',height = 700,width = 1200 ),
                 HTML("<br/> <h4>"),
                 #plotOutput("plotmurder",height = 500,width = 1200 ),
-                column(width = 12,
-                       box(uiOutput('choseregionMurder'),
-                           actionButton('give_murder',"Calculate Prediction")
-                       ))
+                box(uiOutput('choseregionMurder'),
+                    actionButton('give_murder',"Calculate Prediction"),width = 3
+                       ),
+                plotOutput("plotmurder",height = 500,width = 800 )
               )
             )
   ),
@@ -108,10 +117,11 @@ body <- dashboardBody(
               leafletOutput('plot_map_drugs',height = 700,width = 1200 ),
               HTML("<br/><h4> "),
               #plotOutput("plotdrugs",height = 500,width = 1200 )
-              column(width = 12,
-                     box(uiOutput('choseregionDrugs'),
-                         actionButton('give_drugs',"Calculate Prediction")
-                              ))
+              box(uiOutput('choseregionDrugs'),
+                  actionButton('give_drugs',"Calculate Prediction"), width=3
+                              ),
+              plotOutput("plotdrugs",height = 500,width = 800 )
+              
             )
           )
   ),
