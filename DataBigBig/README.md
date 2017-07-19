@@ -2,6 +2,8 @@
 July 2017 Bootcamp - London
 
 This is the folder for team Data Big Big
+=======
+This is the folder for team <<DataBigBig>>
 Our team members are (from left to right once our photo gets uploaded)
 
 [](photoname.jpg)
@@ -9,7 +11,7 @@ Our team members are (from left to right once our photo gets uploaded)
 * Andrew Wu
 * Blanca Lanaspa
 * Cynthia Li
-* Member4
+* Danko Nikolic
 * Zhongyuan Li
 
 # Instructor
