@@ -1,0 +1,5 @@
+var sheriffCrimes2016 = spark.read.csv("hdfs:///evil/data/sheriffCrimes.csv")
+    .select("_c0", "_c1", "_c4")
+    .filter(sheriffCrimes("_c2") === "2016")
+    .filter(sheriffCrimes("_c0") !== "null")
+sheriffCrimes2016.write.csv("file:///mnt/evil/sheriffCrimesFiltered.csv")
