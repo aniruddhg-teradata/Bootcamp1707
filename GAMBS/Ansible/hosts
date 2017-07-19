@@ -1,0 +1,3 @@
+
+[edge_nodes]
+ec2-54-208-153-19.compute-1.amazonaws.com ansible_user=hadoop
