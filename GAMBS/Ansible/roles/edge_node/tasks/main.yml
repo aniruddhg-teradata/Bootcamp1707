@@ -20,3 +20,13 @@
 - name: Poverty data - upload to HDFS
   shell: hdfs dfs -put -f /mnt1/raw_data/poverty_{{ item }}.json /landingzone-ansible/poverty_{{ item }}.json
   with_sequence: start=1999 end=2015
+
+- name: Murder data - download locally
+  uri: 
+    url: https://raw.githubusercontent.com/ThinkBigAnalytics/Bootcamp1707/master/GAMBS/data/CLEAN_estimated_murder.csv
+    method: GET
+    dest: /mnt1/raw_data/CLEAN_estimated_murder.csv
+    creates: /mnt1/raw_data/CLEAN_estimated_murder.csv
+
+- name: Poverty data - upload to HDFS
+  shell: hdfs dfs -put -f /mnt1/raw_data/CLEAN_estimated_murder.csv /landingzone-ansible/CLEAN_estimated_murder.csv
