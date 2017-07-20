@@ -1,0 +1,4 @@
+Host evil
+    User hadoop
+    HostName ec2-54-242-84-133.compute-1.amazonaws.com
+    IdentityFile ~/.ssh/academy-carl-test.pem
