@@ -11,6 +11,7 @@ library(RColorBrewer)
 library (DT)
 library(plotly)
 library(ggplot2)
+library(animation)
 library(plyr)
 #library(RQuantLib)
 #library(rPython)
@@ -22,6 +23,10 @@ load("./murder.RData")
 load("./locations.RData")
 load("./pred_drug.RData")
 load("./pred_murder.RData")
+load("./drugs_ani.RData")
+load("./murder_ani.RData")
+load("./pov_ani.RData")
+
 
 plot_map <- function(category){
   colors <- brewer.pal(n=11,name="RdYlGn")
@@ -64,6 +69,10 @@ server <- function(input, output,session) {
     plot_map(loc$drugs)
   })
   
+  output$ani <- renderPlot({
+    ani.options(interval = 0.2, nmax = 18,loop = T)
+    Rosling.bubbles(x = get_tog_murder %>% as.matrix, y = get_tog_drugs %>% as.matrix ,type = "circles", circles= get_tog_pov, text = 2004:2020 )
+  })
   
   observeEvent(input$give_murder,{
     output$plotmurder <- renderPlot({
@@ -100,7 +109,8 @@ sidebar <- dashboardSidebar(
     # tabs with main functionalities
     menuItem('Introduction', tabName = 'intro', icon = icon('link'),selected = T),
     menuItem('Murder', tabName = 'murder', icon = icon('universal-access')),
-    menuItem('Drug Abuse', tabName = 'drugs', icon = icon('heartbeat'))
+    menuItem('Drug Abuse', tabName = 'drugs', icon = icon('heartbeat')),
+    menuItem('Bubble Visualisation', tabName = 'vis', icon = icon('screen'))
   )
 )
 
@@ -140,6 +150,14 @@ body <- dashboardBody(
               )
             )
     ),
+    tabItem(tabName = "vis",
+            titlePanel("Bubble Chart"),
+            mainPanel(
+              fluidPage(
+                plotOutput("ani")
+              )
+            )
+            ),
     tabItem(tabName = "intro",
             titlePanel("Introduction"),
             mainPanel(
