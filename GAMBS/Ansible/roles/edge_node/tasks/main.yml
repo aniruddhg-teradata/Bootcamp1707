@@ -30,3 +30,13 @@
 
 - name: Poverty data - upload to HDFS
   shell: hdfs dfs -put -f /mnt1/raw_data/CLEAN_estimated_murder.csv /landingzone-ansible/CLEAN_estimated_murder.csv
+
+- name: US State Codes - download locally
+  uri: 
+    url: https://raw.githubusercontent.com/ThinkBigAnalytics/Bootcamp1707/master/GAMBS/data/us_state_codes.csv
+    method: GET
+    dest: /mnt1/raw_data/us_state_codes.csv
+    creates: /mnt1/raw_data/us_state_codes.csv
+
+- name: US State Codes - upload to HDFS
+  shell: hdfs dfs -put -f /mnt1/raw_data/us_state_codes.csv /landingzone-ansible/us_state_codes.csv
