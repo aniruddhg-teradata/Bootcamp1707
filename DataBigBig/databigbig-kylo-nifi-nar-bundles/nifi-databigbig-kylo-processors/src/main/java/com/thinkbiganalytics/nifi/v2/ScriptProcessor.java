@@ -65,12 +65,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @WritesAttributes({
         @WritesAttribute(attribute = "command", description = "Executed Script(to File)"),
         @WritesAttribute(attribute = "file.name", description = "Output Filename"),
-        @WritesAttribute(attribute = "command.arguments", description = "Arguments of the command")
 })
 public class ScriptProcessor extends AbstractProcessor {
 
     private final static String ATTRIBUTE_COMMAND = "command";
-    private final static String ATTRIBUTE_COMMAND_ARGS = "command.arguments";
     private final static String ATTRIBUTE_FILE_NAME = "file.name";
 
 
@@ -82,28 +80,12 @@ public class ScriptProcessor extends AbstractProcessor {
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
 
-    public static final PropertyDescriptor COMMAND_ARGUMENTS = new PropertyDescriptor.Builder()
-            .name("Command Arguments")
-            .description("The arguments to supply to the executable delimited by white space. White space can be escaped by enclosing it in double-quotes.")
-            .required(false)
-            .expressionLanguageSupported(true)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .build();
-
     public static final PropertyDescriptor FILE_NAME = new PropertyDescriptor.Builder()
             .name("Filename")
             .description("Absolute filename the script is writing to")
             .required(true)
             .expressionLanguageSupported(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .build();
-
-    public static final PropertyDescriptor WORKING_DIR = new PropertyDescriptor.Builder()
-            .name("Working Directory")
-            .description("The directory to use as the current working directory when executing the command")
-            .expressionLanguageSupported(false)
-            .addValidator(StandardValidators.createDirectoryExistsValidator(false, true))
-            .required(false)
             .build();
 
     public static final PropertyDescriptor REDIRECT_ERROR_STREAM = new PropertyDescriptor.Builder()
@@ -118,16 +100,6 @@ public class ScriptProcessor extends AbstractProcessor {
             .build();
 
     private static final Validator characterValidator = new StandardValidators.StringLengthValidator(1, 1);
-
-    static final PropertyDescriptor ARG_DELIMITER = new PropertyDescriptor.Builder()
-            .name("Argument Delimiter")
-            .description("Delimiter to use to separate arguments for a command [default: space]. Must be a single character.")
-            .addValidator(Validator.VALID)
-            .addValidator(characterValidator)
-            .required(true)
-            .defaultValue(" ")
-            .build();
-
 
     public static final Relationship REL_SUCCESS = new Relationship.Builder()
             .name("success")
@@ -149,10 +121,8 @@ public class ScriptProcessor extends AbstractProcessor {
     protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
         final List<PropertyDescriptor> properties = new ArrayList<>();
         properties.add(COMMAND);
-        properties.add(COMMAND_ARGUMENTS);
         properties.add(FILE_NAME);
         properties.add(REDIRECT_ERROR_STREAM);
-        properties.add(ARG_DELIMITER);
         return properties;
     }
 
@@ -197,17 +167,11 @@ public class ScriptProcessor extends AbstractProcessor {
     public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
 
         final String command = context.getProperty(COMMAND).getValue();
-        final String arguments = context.getProperty(COMMAND_ARGUMENTS).isSet()
-                ? context.getProperty(COMMAND_ARGUMENTS).evaluateAttributeExpressions().getValue()
-                : null;
         final String filename = context.getProperty(FILE_NAME).getValue();
-
-        final List<String> commandStrings = createCommandStrings(context, command, arguments);
-        final String commandString = StringUtils.join(commandStrings, " ");
 
         if (longRunningProcess == null || longRunningProcess.isDone()) {
             try {
-                longRunningProcess = launchProcess(context, commandStrings);
+                longRunningProcess = launchProcess(context, command);
             } catch (final IOException ioe) {
                 getLogger().error("Failed to create process due to {}", new Object[]{ioe});
                 context.yield();
@@ -249,12 +213,8 @@ public class ScriptProcessor extends AbstractProcessor {
             // add command and arguments as attribute
             flowFile = session.putAttribute(flowFile, ATTRIBUTE_FILE_NAME, filename);
             flowFile = session.putAttribute(flowFile, ATTRIBUTE_COMMAND, command);
-            if (arguments != null) {
-                flowFile = session.putAttribute(flowFile, ATTRIBUTE_COMMAND_ARGS, arguments);
-            }
-
             // All was good. Generate event and transfer FlowFile.
-            session.getProvenanceReporter().create(flowFile, "Created from command: " + commandString);
+            session.getProvenanceReporter().create(flowFile, "Created from command: " + command);
             getLogger().info("Created {} and routed to success", new Object[]{flowFile});
             session.transfer(flowFile, REL_SUCCESS);
         }
@@ -263,37 +223,12 @@ public class ScriptProcessor extends AbstractProcessor {
         session.commit();
     }
 
-    protected List<String> createCommandStrings(final ProcessContext context, final String command, final String arguments) {
-        final List<String> args = ArgumentUtils.splitArgs(arguments, context.getProperty(ARG_DELIMITER).getValue().charAt(0));
-        final List<String> commandStrings = new ArrayList<>(args.size() + 1);
-        commandStrings.add(command);
-        commandStrings.addAll(args);
-        return commandStrings;
-    }
 
-    protected Future<?> launchProcess(final ProcessContext context, final List<String> commandStrings) throws IOException {
-
+    protected Future<?> launchProcess(final ProcessContext context,String commandStrings) throws IOException {
         final Boolean redirectErrorStream = context.getProperty(REDIRECT_ERROR_STREAM).asBoolean();
 
-        final ProcessBuilder builder = new ProcessBuilder(commandStrings);
-        final String workingDirName = context.getProperty(WORKING_DIR).getValue();
-        if (workingDirName != null) {
-            builder.directory(new File(workingDirName));
-        }
-
-        final Map<String, String> environment = new HashMap<>();
-        for (final Map.Entry<PropertyDescriptor, String> entry : context.getProperties().entrySet()) {
-            if (entry.getKey().isDynamic()) {
-                environment.put(entry.getKey().getName(), entry.getValue());
-            }
-        }
-
-        if (!environment.isEmpty()) {
-            builder.environment().putAll(environment);
-        }
-
         getLogger().info("Start creating new Process > {} ", new Object[]{commandStrings});
-        this.externalProcess = builder.redirectErrorStream(redirectErrorStream).start();
+        this.externalProcess = Runtime.getRuntime().exec(commandStrings);
 
         // Submit task to read error stream from process
         if (!redirectErrorStream) {

@@ -85,7 +85,6 @@ public class ScriptProcessorTest {
     public void validateProcessInterruptOnStop() throws Exception {
         final TestRunner runner = TestRunners.newTestRunner(ScriptProcessor.class);
         runner.setProperty(ScriptProcessor.COMMAND, "ping");
-        runner.setProperty(ScriptProcessor.COMMAND_ARGUMENTS, "nifi.apache.org");
         runner.setProperty(ScriptProcessor.FILE_NAME, "Novo_dicionário_da_língua_portuguesa_by_Cândido_de_Figueiredo.txt");
 
         runner.run();
@@ -118,8 +117,6 @@ public class ScriptProcessorTest {
 
         final TestRunner runner = TestRunners.newTestRunner(ScriptProcessor.class);
         runner.setProperty(ScriptProcessor.COMMAND, "cmd");
-        runner.setProperty(ScriptProcessor.COMMAND_ARGUMENTS, " /c type " + testFile);
-        runner.setProperty(ScriptProcessor.WORKING_DIR, workingDirName);
 
         File inFile = new File(workingDirName, testFile);
         System.out.println(inFile.getAbsolutePath());
@@ -148,8 +145,6 @@ public class ScriptProcessorTest {
 
         final TestRunner runner = TestRunners.newTestRunner(ScriptProcessor.class);
         runner.setProperty(ScriptProcessor.COMMAND, "cmd");
-        runner.setProperty(ScriptProcessor.COMMAND_ARGUMENTS, " /c type " + testFile);
-        runner.setProperty(ScriptProcessor.WORKING_DIR, workingDirName);
         runner.setProperty(ScriptProcessor.FILE_NAME, "Novo_dicionário_da_língua_portuguesa_by_Cândido_de_Figueiredo.txt");
 
         File inFile = new File(workingDirName, testFile);
@@ -190,7 +185,6 @@ public class ScriptProcessorTest {
     public void testRedirectErrorStream() {
         final TestRunner runner = TestRunners.newTestRunner(ScriptProcessor.class);
         runner.setProperty(ScriptProcessor.COMMAND, "cd");
-        runner.setProperty(ScriptProcessor.COMMAND_ARGUMENTS, "does-not-exist");
         runner.setProperty(ScriptProcessor.REDIRECT_ERROR_STREAM, "true");
         runner.setProperty(ScriptProcessor.FILE_NAME, "Novo_dicionário_da_língua_portuguesa_by_Cândido_de_Figueiredo.txt");
 
