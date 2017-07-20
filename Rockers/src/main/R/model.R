@@ -1,4 +1,4 @@
-#v3
+#v4
 
 #get necessary libraries
 
@@ -228,6 +228,10 @@ rm(x,row)
 
 
 
+
+
+
+
 #visualization and maps
 
 library(shiny)
@@ -243,3 +247,33 @@ la_poly<-readOGR(file.choose()) %>% spTransform(CRS("+proj=longlat +datum=WGS84"
 
 ggplot(la_poly, aes(x = long, y = lat, group = group)) + geom_path()
 
+
+map_df<-fortify(la_poly,region = "ZIPCODE")
+
+
+
+
+
+
+#PRESENTATION
+
+zip_probs<-data.frame(zip=zip_reduced,prob=NA)
+row=1
+
+for(x in zip_reduced)
+{
+  
+  
+  zip_probs[row,2]<-cpquery(crime_fit, event = (crime=="ROBBERY"),
+                            evidence = (weekday=="Saturday" & timeofday=="evening" &
+                                          zip==x),n=1000000)
+  row=row+1
+  
+}
+
+rm(x,row)
+
+
+map_df<-left_join(map_df,zip_probs,by=c("id"="zip"))
+
+ggplot(map_df,aes(x=long,y=lat,group=group,fill=prob))+geom_polygon()
