@@ -33,11 +33,4 @@
         <module>nifi-databigbig-kylo-nar</module>
     </modules>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.apache.nifi</groupId>
-            <artifactId>nifi-standard-processors</artifactId>
-            <version>1.0.1</version>
-        </dependency>
-    </dependencies>
 </project>

@@ -16,6 +16,7 @@
  */
 package com.thinkbiganalytics.nifi.v2;
 
+import com.thinkbiganalytics.nifi.v2.util.ArgumentUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.nifi.annotation.behavior.DynamicProperty;
 import org.apache.nifi.annotation.behavior.InputRequirement;
@@ -35,7 +36,6 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processor.util.StandardValidators;
-import org.apache.nifi.processors.standard.util.ArgumentUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -69,9 +69,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 })
 public class ScriptProcessor extends AbstractProcessor {
 
-    final static String ATTRIBUTE_COMMAND = "command";
-    final static String ATTRIBUTE_COMMAND_ARGS = "command.arguments";
-    final static String ATTRIBUTE_FILE_NAME = "file.name";
+    private final static String ATTRIBUTE_COMMAND = "command";
+    private final static String ATTRIBUTE_COMMAND_ARGS = "command.arguments";
+    private final static String ATTRIBUTE_FILE_NAME = "file.name";
 
 
     public static final PropertyDescriptor COMMAND = new PropertyDescriptor.Builder()
