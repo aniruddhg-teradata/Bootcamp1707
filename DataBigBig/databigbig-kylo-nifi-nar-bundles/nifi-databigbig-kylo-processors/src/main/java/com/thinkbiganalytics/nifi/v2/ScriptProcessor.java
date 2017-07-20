@@ -69,9 +69,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 })
 public class ScriptProcessor extends AbstractProcessor {
 
-    final static String ATTRIBUTE_COMMAND = "command";
-    final static String ATTRIBUTE_COMMAND_ARGS = "command.arguments";
-    final static String ATTRIBUTE_FILE_NAME = "file.name";
+    private final static String ATTRIBUTE_COMMAND = "command";
+    private final static String ATTRIBUTE_COMMAND_ARGS = "command.arguments";
+    private final static String ATTRIBUTE_FILE_NAME = "file.name";
 
 
     public static final PropertyDescriptor COMMAND = new PropertyDescriptor.Builder()
