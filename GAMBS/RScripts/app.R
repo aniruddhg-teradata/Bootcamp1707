@@ -1,19 +1,12 @@
 library(shiny)
-require(shinydashboard)
+library(shinydashboard)
 library(dplyr)
-library(igraph)
-library(shinyBS)
 library(leaflet)
-library(shinyTime)
 library(graphics)
 library(scales)
 library(RColorBrewer)
-library (DT)
-library(plotly)
 library(ggplot2)
 library(plyr)
-#library(RQuantLib)
-#library(rPython)
 library("colorspace")
 
 
@@ -22,6 +15,8 @@ load("./murder.RData")
 load("./locations.RData")
 load("./pred_drug.RData")
 load("./pred_murder.RData")
+load("./povMurder.RData")
+load("./povDrugs.RData")
 
 plot_map <- function(category){
   colors <- brewer.pal(n=11,name="RdYlGn")
@@ -51,10 +46,6 @@ murder_regions <- ind %>% as.data.frame
 rm(ind)
 
 server <- function(input, output,session) {
-  ##############################################################################
-  # reactive functions
-  ##############################################################################
-  # list containing variables that can be read and modified by the dashboard
   
   output$plot_map_murder <- renderLeaflet({
     plot_map(loc$murder)
@@ -62,6 +53,14 @@ server <- function(input, output,session) {
   
   output$plot_map_drugs <- renderLeaflet({
     plot_map(loc$drugs)
+  })
+  
+  output$corPovmurder <- renderPlot({
+    ggplot(data = povMurd,aes(x=pov,y=murder)) + geom_point() + stat_smooth(method = "lm", col = "red") + theme_bw() + xlab("Poverty rate") + ylab("Murder rate")
+    })
+  
+  output$corPovdrugs <- renderPlot({
+    ggplot(data = povdrugs,aes(x=pov,y=drugs)) + geom_point() + geom_smooth(method = "lm", formula = y ~ splines::bs(x, 3), se = FALSE) + theme_bw() + xlab("Poverty rate") + ylab("Drug abuse rate")
   })
   
   
@@ -97,17 +96,16 @@ server <- function(input, output,session) {
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
-    # tabs with main functionalities
     menuItem('Introduction', tabName = 'intro', icon = icon('link'),selected = T),
     menuItem('Murder', tabName = 'murder', icon = icon('universal-access')),
-    menuItem('Drug Abuse', tabName = 'drugs', icon = icon('heartbeat'))
+    menuItem('Drug Abuse', tabName = 'drugs', icon = icon('heartbeat')),
+    menuItem('Correlation with Poverty', tabName = 'vis', icon = icon('dollar'))
   )
 )
 
 
 # dashboard body
 body <- dashboardBody(
-  # tabItems correspond to entries in the sidebar
   tabItems(
     tabItem(tabName = 'murder',
             mainPanel(
@@ -140,6 +138,16 @@ body <- dashboardBody(
               )
             )
     ),
+    tabItem(tabName = "vis",
+            titlePanel("Correlation with Poverty"),
+            mainPanel(
+              fluidPage(
+                plotOutput("corPovmurder"),
+                HTML("<br/>"),
+                plotOutput("corPovdrugs")
+              )
+            )
+            ),
     tabItem(tabName = "intro",
             titlePanel("Introduction"),
             mainPanel(
@@ -168,15 +176,8 @@ body <- dashboardBody(
             )
             )
 
-# tb_images <- system.file("extdata", "tb_images", package = "TBdesign")
-# 
-# div(style = "position: fixed; bottom: 35px; left: 35px;",
-#     img(src = 'tb_images/tb_logo.png', width = 197)
-# )
-
 
 ui <- dashboardPage(dashboardHeader(title = 'InSights'),
-                    #TBdesign::td_colors$primary["orange"],
                     skin = 'yellow',
                     sidebar = sidebar, 
                     body = body)

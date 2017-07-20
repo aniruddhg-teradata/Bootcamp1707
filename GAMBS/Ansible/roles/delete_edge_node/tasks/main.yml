@@ -1,0 +1,10 @@
+---
+# Clean everything on the edge node and HDFS
+
+- name: Delete download directory and all of its contents
+  file:
+    path: /mnt1/raw_data
+    state: absent
+
+- name: Remove HDFS content
+  shell: hdfs dfs -rm -R /landingzone-ansible

@@ -1,0 +1,7 @@
+---
+# This playbook deletes all the data on the cluster - downloaded and HDFS
+
+- hosts: edge_nodes
+  roles:
+  - delete_edge_node
+  

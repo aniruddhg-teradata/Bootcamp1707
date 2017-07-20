@@ -1,4 +1,4 @@
-#v3
+#v4
 
 #get necessary libraries
 
@@ -15,12 +15,12 @@ library(bnlearn) #bayesian network modeling
 
 #read in data
 
-la_sheriff_crime <- read_csv("~/Downloads/LA_Sheriff_Crimes_from_2004_to_2016__Ordered_by_Zip_Code.csv")
+la_sheriff_crime <- read_csv("../../../data/sheriffCrimes2016.csv")
 
 #convert timestamp to POSIX and create date column without time (to merge with foreclosure dataset)
 
-la_sheriff_crime$CRIME_DATE<-mdy_hms(la_sheriff_crime$CRIME_DATE)
-la_sheriff_crime<-la_sheriff_crime %>% mutate(date_notime=as.Date(date))
+la_sheriff_crime$CRIME_DATE<-ymd(la_sheriff_crime$DATE)
+#la_sheriff_crime<-la_sheriff_crime %>% mutate(date_notime=as.Date(DATE))
 
 #get the weekdays
 
@@ -28,21 +28,21 @@ la_sheriff_crime<-la_sheriff_crime %>% mutate(weekday=weekdays(CRIME_DATE))
 
 #6-12 morning,12-18 noon,18-22 evening,22-6 night
 
-hours<-as.numeric(format(la_sheriff_crime$CRIME_DATE,"%H"))
+hours<-hms(la_sheriff_crime$TIME)$hour
 la_sheriff_crime<-la_sheriff_crime %>% mutate(timeofday=as.character(cut(hours,c(6,12,18,22),c("morning","noon","evening"))))
 la_sheriff_crime$timeofday<-ifelse(is.na(la_sheriff_crime$timeofday),"night",la_sheriff_crime$timeofday)
 rm(hours)
-
+la_sheriff_crime<-la_sheriff_crime %>% select(-TIME)
 
 #filter for 2016, get rid of NAs, only selected columns
-
-la_sheriff_crime<-la_sheriff_crime %>% mutate(year=year(CRIME_DATE)) %>% filter(year==2016) %>% select(-year)
-la_sheriff_crime<-la_sheriff_crime %>% select(ZIP,CRIME_DATE,CRIME_CATEGORY_DESCRIPTION,weekday,timeofday)
-la_sheriff_crime<-na.omit(la_sheriff_crime)
+# That's already done by a spark job
+#la_sheriff_crime<-la_sheriff_crime %>% mutate(year=year(CRIME_DATE)) %>% filter(year==2016) %>% select(-year)
+#la_sheriff_crime<-la_sheriff_crime %>% select(ZIP,CRIME_DATE,CRIME_CATEGORY_DESCRIPTION,weekday,timeofday)
+#la_sheriff_crime<-na.omit(la_sheriff_crime)
 
 #rename columns for better readability
-
-names(la_sheriff_crime)<-c("zip","date","crime","weekday","timeofday","date_notime")
+#names(la_sheriff_crime)<-c("zip","date","crime","weekday","timeofday","date_notime")
+names(la_sheriff_crime)<-c("zip","date", "crime","date_notime", "weekday","timeofday")
 
 
 #get unique zip codes
@@ -50,9 +50,10 @@ names(la_sheriff_crime)<-c("zip","date","crime","weekday","timeofday","date_noti
 zip_unq<-unique(la_sheriff_crime$zip)
 
 
+
 #foreclosure join
 
-foreclosures2016 <- read_csv("~/Documents/foreclosures2016.csv")
+foreclosures2016 <- read_csv("../../../data/foreclosures2016.csv")
 
 foreclosure_count<-foreclosures2016 %>% count(RegisteredDate)
 
@@ -70,7 +71,7 @@ la_sheriff_crime[is.na(la_sheriff_crime$foreclosures),"foreclosures"]<-0
 
 #weather join
 
-weather <- read_csv("~/weather.csv")
+weather <- read_csv("../../../data/weather.csv")
 
 weather<-weather %>% mutate(date=ymd(paste(weather$Year,weather$Month,weather$Day))) %>% select(date,Events)
 
@@ -95,38 +96,8 @@ la_sheriff_crime<-as.data.frame(lapply(la_sheriff_crime,as.factor))
 
 #BAYESIAN NETWORK
 
-#fit the model
-
-la_sheriff_crime<-as.data.frame(lapply(la_sheriff_crime,as.factor))
-res<-hc(la_sheriff_crime) #hill climbing
-crime_fit<-bn.fit(res,la_sheriff_crime)
-
-plot(res) #plot the graph
 
 
-
-#adjust network structure (in case algorithm result is not sufficient)
-
-crime_links<-as.data.frame(expand.grid(names(la_sheriff_crime),names(la_sheriff_crime))) #link everything
-
-arcs(res)<-matrix(c("weather","crime",
-                    "zip","crime","foreclosures","crime",
-                    "timeofday","crime","weekday","crime"),ncol = 2,byrow = T,dimnames = list(NULL,c("from","to")))
-
-res$arcs<-res$arcs[-which((res$arcs[,'from']=="crime" & res$arcs[,'to']=="zip")),] #remove links
-
-
-
-#cpquery based on monte carlo particle filters(?!?) and yiels different probabilities,
-#increase number of draws (n) to reduce variation, find trade-off between speed and accuracy
-
-cpquery(crime_fit, event = (crime=="ARSON"),
-        evidence = (weekday=="Monday"),n=100000)
-
-
-
-
-#:):):):):):):):):):):):):):):):):):):):):):):):):)#
 
 
 
@@ -160,6 +131,7 @@ la_sheriff_crime_reduced<-la_sheriff_crime_reduced %>%
   mutate(foreclosures=cut(as.integer(foreclosures),
                  c(-Inf,quantile(as.integer(la_sheriff_crime_reduced$foreclosures))),
                  c("0","1-3","4-18","19-44","45-65")))
+
 
 
 timeofday_reduced<-c("morning","noon","evening","night")
@@ -256,6 +228,10 @@ rm(x,row)
 
 
 
+
+
+
+
 #visualization and maps
 
 library(shiny)
@@ -271,3 +247,33 @@ la_poly<-readOGR(file.choose()) %>% spTransform(CRS("+proj=longlat +datum=WGS84"
 
 ggplot(la_poly, aes(x = long, y = lat, group = group)) + geom_path()
 
+
+map_df<-fortify(la_poly,region = "ZIPCODE")
+
+
+
+
+
+
+#PRESENTATION
+
+zip_probs<-data.frame(zip=zip_reduced,prob=NA)
+row=1
+
+for(x in zip_reduced)
+{
+  
+  
+  zip_probs[row,2]<-cpquery(crime_fit, event = (crime=="ROBBERY"),
+                            evidence = (weekday=="Saturday" & timeofday=="evening" &
+                                          zip==x),n=1000000)
+  row=row+1
+  
+}
+
+rm(x,row)
+
+
+map_df<-left_join(map_df,zip_probs,by=c("id"="zip"))
+
+ggplot(map_df,aes(x=long,y=lat,group=group,fill=prob))+geom_polygon()
