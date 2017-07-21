@@ -2,16 +2,16 @@
 July 2017 Bootcamp - London
 
 This is the folder for team Rockers
-Our team members are (from left to right once our photo gets uploaded)
+Our team members are (from left to right)
 
-[](photoname.jpg)
+![team rockers](../img/IMG_9192.jpg)
 
-* Richard Seery
+* Eric Greene
 * Aniruddh Gandhi
+* Alexander Kassing
+* Richard Seery
 * Fabian Necci
 * Jianguang Li
-* Eric Greene
-* Alexander Kassing
 
 # Instructor
 * Carl Howe
